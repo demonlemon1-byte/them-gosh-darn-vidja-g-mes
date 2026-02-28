@@ -111,7 +111,24 @@ a.back {
         if (elem.requestFullscreen) elem.requestFullscreen();
         else if (elem.webkitRequestFullscreen) elem.webkitRequestFullscreen();
         else if (elem.msRequestFullscreen) elem.msRequestFullscreen();
-    }
+}
+    
+    function resizeGame() {
+    const container = document.getElementById("container");
+    const gameWidth = 800;   // original width of Fireboy & Watergirl
+    const gameHeight = 600;  // original height
+    const wrapper = document.getElementById("gameContainer");
+
+    const scaleX = wrapper.clientWidth / gameWidth;
+    const scaleY = wrapper.clientHeight / gameHeight;
+
+    const scale = Math.min(scaleX, scaleY); // fit entirely
+    container.style.setProperty('--scale', scale);
+}
+
+// Run initially and on window resize
+window.addEventListener('resize', resizeGame);
+window.addEventListener('load', resizeGame);
 </script>
 
 </body>
