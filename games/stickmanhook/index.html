@@ -1,42 +1,124 @@
 <!DOCTYPE html>
 <html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-
-
-    <meta charset="utf-8"/>
-    <title>Stickman Hook</title>
-    <link href="../../images/ico.ico" rel="shortcut icon">
-    <script src="../../storage/js/cloak.js"></script>
-    <meta
-        content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0"
-        name="viewport"
-    />
-
-    <style>
-        html,
-        body {
-            position: absolute;
-            top: 0px;
-            left: 0px;
-            margin: 0;
-            padding: 0;
-            border: 0;
-            overflow: hidden;
-            width: 100vw;
-            height: 100vh;
-            background-color: black;
-        }
-
-        canvas {
-            width: 100%;
-        }
-    </style>
-
-    <!-- Poki SDK -->
-    <script src="poki3.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stickman Hook</title>
+<style>
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background-color: #5f9ea0;
+    color: white;
+    text-align: center;
+    padding: 40px 20px;
+}
+.game-wrapper {
+    margin: 30px auto;
+    max-width: 900px;
+}
+.game-container {
+    position: relative;
+    width: 100%;
+    height: 600px;
+    background: rgba(0,0,0,0.5);
+    border-radius: 20px;
+    box-shadow: 0 0 25px rgba(95,158,160,0.8);
+    overflow: hidden;
+}
+.game-container:fullscreen {
+    width: 100vw;
+    height: 100vh;
+    border-radius: 0;
+}
+.fullscreen-btn {
+    margin-top: 15px;
+    padding: 10px 20px;
+    background: #222;
+    border: none;
+    border-radius: 8px;
+    color: white;
+    cursor: pointer;
+    font-size: 14px;
+}
+.fullscreen-btn:hover { background: #333; }
+</style>
 </head>
 <body>
 
-<script src="bundle.js"></script>
+<h1 id="gameTitle">Stickman Hook</h1>
+<p><a href="../index.html">← Back to Home</a></p>
+
+<div class="game-wrapper">
+    <div class="game-container" id="gameContainer">
+        <!-- Game will appear here -->
+    </div>
+    <button class="fullscreen-btn" onclick="goFullscreen()">⛶ Fullscreen</button>
+</div>
+
+<script>
+const gameFolder = "./"; // change this if your game is in a subfolder
+const gameContainer = document.getElementById("gameContainer");
+const possibleJSFiles = [
+    "poki3.js",
+    "bundle.js",
+    "poki2",
+    "poki.js"
+];
+
+// Dynamically add a script if it exists
+function addScriptIfExists(src, callback) {
+    fetch(src, { method: 'HEAD' })
+        .then(res => {
+            if (res.ok) {
+                const s = document.createElement('script');
+                s.src = src;
+                if (callback) s.onload = callback;
+                document.body.appendChild(s);
+            } else {
+                console.warn(`File not found: ${src}`);
+            }
+        })
+        .catch(err => console.warn(`Error checking file: ${src}`, err));
+}
+
+// Load all JS files in order
+function loadGameScripts(files) {
+    if (files.length === 0) return;
+
+    const nextFile = files.shift();
+    addScriptIfExists(gameFolder + nextFile, () => loadGameScripts(files));
+}
+
+// Try to detect main game JS
+const gameMain = possibleJSFiles[0]; // You can make this smarter if needed
+
+// Start loading all scripts
+loadGameScripts([...possibleJSFiles]);
+
+// Fullscreen
+function goFullscreen() {
+    if (gameContainer.requestFullscreen) {
+        gameContainer.requestFullscreen();
+    } else if (gameContainer.webkitRequestFullscreen) {
+        gameContainer.webkitRequestFullscreen();
+    } else if (gameContainer.msRequestFullscreen) {
+        gameContainer.msRequestFullscreen();
+    }
+}
+
+// Optional: adjust container to window size
+function resizeGameContainer() {
+    const w = window.innerWidth;
+    const h = window.innerHeight - 100; // leave space for padding/buttons
+    gameContainer.style.width = Math.min(900, w) + "px";
+    gameContainer.style.height = Math.max(400, h) + "px";
+}
+window.addEventListener("resize", resizeGameContainer);
+resizeGameContainer();
+</script>
+
 </body>
 </html>
