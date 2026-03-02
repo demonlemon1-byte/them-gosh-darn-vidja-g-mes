@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Fruit Ninja</title>
+<title>Fruit Ninja - Debug</title>
 <style>
 body {
     margin: 0;
@@ -26,11 +26,6 @@ body {
     box-shadow: 0 0 25px rgba(95,158,160,0.8);
     overflow: hidden;
 }
-.game-container:fullscreen {
-    width: 100vw;
-    height: 100vh;
-    border-radius: 0;
-}
 .fullscreen-btn {
     margin-top: 15px;
     padding: 10px 20px;
@@ -42,23 +37,36 @@ body {
     font-size: 14px;
 }
 .fullscreen-btn:hover { background: #333; }
+#debug-log {
+    position: absolute;
+    top: 0;
+    left: 0;
+    background: rgba(0,0,0,0.8);
+    color: #ff0;
+    padding: 10px;
+    font-size: 12px;
+    max-height: 100%;
+    overflow-y: auto;
+    text-align: left;
+}
 </style>
 </head>
 <body>
 
-<h1 id="gameTitle">Fruit Ninja</h1>
-<p><a href="../index.html">← Back to Home</a></p>
+<h1>Fruit Ninja - Debug</h1>
 
 <div class="game-wrapper">
     <div class="game-container" id="gameContainer">
-        <!-- Game will appear here -->
+        <div id="debug-log">Loading...</div>
     </div>
     <button class="fullscreen-btn" onclick="goFullscreen()">⛶ Fullscreen</button>
 </div>
 
 <script>
-const gameFolder = "./"; // change this if your game is in a subfolder
+const gameFolder = "./"; 
 const gameContainer = document.getElementById("gameContainer");
+const debugLog = document.getElementById("debug-log");
+
 const possibleJSFiles = [
     "main.bundle.js",
     "vendors.bundle.js",
@@ -66,54 +74,56 @@ const possibleJSFiles = [
     "poki-sdk.js"
 ];
 
-// Dynamically add a script if it exists
+function log(msg) {
+    debugLog.innerHTML += msg + "<br>";
+}
+
 function addScriptIfExists(src, callback) {
     fetch(src, { method: 'HEAD' })
         .then(res => {
             if (res.ok) {
+                log("✅ Found: " + src);
                 const s = document.createElement('script');
                 s.src = src;
                 if (callback) s.onload = callback;
                 document.body.appendChild(s);
             } else {
-                console.warn(`File not found: ${src}`);
+                log("❌ Missing: " + src);
+                if (callback) callback(); // continue to next
             }
         })
-        .catch(err => console.warn(`Error checking file: ${src}`, err));
+        .catch(err => {
+            log("⚠ Error checking: " + src);
+            console.warn(err);
+            if (callback) callback();
+        });
 }
 
-// Load all JS files in order
 function loadGameScripts(files) {
-    if (files.length === 0) return;
-
+    if (files.length === 0) {
+        log("All scripts processed.");
+        return;
+    }
     const nextFile = files.shift();
     addScriptIfExists(gameFolder + nextFile, () => loadGameScripts(files));
 }
 
-// Try to detect main game JS
-const gameMain = possibleJSFiles[0]; // You can make this smarter if needed
-
-// Start loading all scripts
 loadGameScripts([...possibleJSFiles]);
 
-// Fullscreen
 function goFullscreen() {
-    if (gameContainer.requestFullscreen) {
-        gameContainer.requestFullscreen();
-    } else if (gameContainer.webkitRequestFullscreen) {
-        gameContainer.webkitRequestFullscreen();
-    } else if (gameContainer.msRequestFullscreen) {
-        gameContainer.msRequestFullscreen();
-    }
+    if (gameContainer.requestFullscreen) gameContainer.requestFullscreen();
+    else if (gameContainer.webkitRequestFullscreen) gameContainer.webkitRequestFullscreen();
+    else if (gameContainer.msRequestFullscreen) gameContainer.msRequestFullscreen();
 }
 
-// Optional: adjust container to window size
 function resizeGameContainer() {
     const w = window.innerWidth;
-    const h = window.innerHeight - 100; // leave space for padding/buttons
+    const h = window.innerHeight - 100;
     gameContainer.style.width = Math.min(900, w) + "px";
     gameContainer.style.height = Math.max(400, h) + "px";
+    log("Container size: " + gameContainer.style.width + " × " + gameContainer.style.height);
 }
+
 window.addEventListener("resize", resizeGameContainer);
 resizeGameContainer();
 </script>
