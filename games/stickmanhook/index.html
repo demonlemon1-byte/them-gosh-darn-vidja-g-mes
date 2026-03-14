@@ -1,124 +1,161 @@
 <!DOCTYPE html>
-<html>
-<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Stickman Hook</title>
-<style>
-body {
-    margin: 0;
-    font-family: Arial, sans-serif;
-    background-color: #5f9ea0;
-    color: white;
-    text-align: center;
-    padding: 40px 20px;
-}
-.game-wrapper {
-    margin: 30px auto;
-    max-width: 900px;
-}
-.game-container {
-    position: relative;
-    width: 100%;
-    height: 600px;
-    background: rgba(0,0,0,0.5);
-    border-radius: 20px;
-    box-shadow: 0 0 25px rgba(95,158,160,0.8);
-    overflow: hidden;
-}
-.game-container:fullscreen {
-    width: 100vw;
-    height: 100vh;
-    border-radius: 0;
-}
-.fullscreen-btn {
-    margin-top: 15px;
-    padding: 10px 20px;
-    background: #222;
-    border: none;
-    border-radius: 8px;
-    color: white;
-    cursor: pointer;
-    font-size: 14px;
-}
-.fullscreen-btn:hover { background: #333; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stickman Hook</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #2c3e50;
+            color: white;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .game-wrapper {
+            margin: 20px auto;
+            max-width: 900px;
+        }
+
+        /* The Container */
+        #gameContainer {
+            position: relative;
+            width: 100%;
+            height: 600px;
+            background: #000;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            overflow: hidden;
+            display: flex; /* Centers the canvas if it's smaller than the box */
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* CRITICAL: This forces the game canvas to behave */
+        #gameContainer canvas {
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: contain; 
+            display: block;
+        }
+
+        /* Loading Indicator */
+        #loading-text {
+            position: absolute;
+            z-index: 10;
+            font-weight: bold;
+            color: #5f9ea0;
+        }
+
+        .fullscreen-btn {
+            margin-top: 15px;
+            padding: 12px 25px;
+            background: #5f9ea0;
+            border: none;
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+            transition: transform 0.2s, background 0.2s;
+        }
+
+        .fullscreen-btn:hover {
+            background: #7fb3b5;
+            transform: scale(1.05);
+        }
+
+        a { color: #abdbe3; text-decoration: none; }
+    </style>
 </head>
 <body>
 
-<h1 id="gameTitle">Stickman Hook</h1>
-<p><a href="../index.html">← Back to Home</a></p>
+    <h1>Stickman Hook</h1>
+    <p><a href="../index.html">← Back to Home</a></p>
 
-<div class="game-wrapper">
-    <div class="game-container" id="gameContainer">
-        <!-- Game will appear here -->
+    <div class="game-wrapper">
+        <div id="gameContainer">
+            <div id="loading-text">Loading Game Engine...</div>
+            </div>
+        <button class="fullscreen-btn" onclick="goFullscreen()">⛶ FULLSCREEN</button>
     </div>
-    <button class="fullscreen-btn" onclick="goFullscreen()">⛶ Fullscreen</button>
-</div>
 
-<script>
-const gameFolder = "./"; // change this if your game is in a subfolder
-const gameContainer = document.getElementById("gameContainer");
-const possibleJSFiles = [
-    "poki3.js",
-    "bundle.js",
-    "poki2",
-    "poki.js"
-];
+    <script>
+        const gameContainer = document.getElementById("gameContainer");
+        const loadingText = document.getElementById("loading-text");
 
-// Dynamically add a script if it exists
-function addScriptIfExists(src, callback) {
-    fetch(src, { method: 'HEAD' })
-        .then(res => {
-            if (res.ok) {
-                const s = document.createElement('script');
-                s.src = src;
-                if (callback) s.onload = callback;
-                document.body.appendChild(s);
-            } else {
-                console.warn(`File not found: ${src}`);
+        /**
+         * 1. THE CANVAS CATCHER
+         * This watches the page and moves the game canvas into our div 
+         * the microsecond it is created by the game scripts.
+         */
+        const observer = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                mutation.addedNodes.forEach((node) => {
+                    if (node.tagName === 'CANVAS') {
+                        gameContainer.appendChild(node);
+                        loadingText.style.display = 'none'; // Hide loading when canvas appears
+                        console.log("Game Canvas captured and injected.");
+                    }
+                });
+            });
+        });
+
+        observer.observe(document.body, { childList: true, subtree: true });
+
+        /**
+         * 2. SCRIPT LOADER
+         */
+        const gameFolder = "./"; 
+        const scriptsToLoad = ["poki3.js", "bundle.js", "poki.js", "poki2.js"];
+
+        function loadGameScripts(files) {
+            if (files.length === 0) return;
+
+            const nextFile = files.shift();
+            const script = document.createElement('script');
+            script.src = gameFolder + nextFile;
+            
+            script.onload = () => {
+                console.log(`Loaded: ${nextFile}`);
+                loadGameScripts(files);
+            };
+
+            script.onerror = () => {
+                console.warn(`Skipping missing file: ${nextFile}`);
+                loadGameScripts(files);
+            };
+
+            document.body.appendChild(script);
+        }
+
+        // Start loading
+        loadGameScripts(scriptsToLoad);
+
+        /**
+         * 3. FULLSCREEN HANDLER
+         */
+        function goFullscreen() {
+            if (gameContainer.requestFullscreen) {
+                gameContainer.requestFullscreen();
+            } else if (gameContainer.webkitRequestFullscreen) {
+                gameContainer.webkitRequestFullscreen();
+            } else if (gameContainer.msRequestFullscreen) {
+                gameContainer.msRequestFullscreen();
             }
-        })
-        .catch(err => console.warn(`Error checking file: ${src}`, err));
-}
+        }
 
-// Load all JS files in order
-function loadGameScripts(files) {
-    if (files.length === 0) return;
-
-    const nextFile = files.shift();
-    addScriptIfExists(gameFolder + nextFile, () => loadGameScripts(files));
-}
-
-// Try to detect main game JS
-const gameMain = possibleJSFiles[0]; // You can make this smarter if needed
-
-// Start loading all scripts
-loadGameScripts([...possibleJSFiles]);
-
-// Fullscreen
-function goFullscreen() {
-    if (gameContainer.requestFullscreen) {
-        gameContainer.requestFullscreen();
-    } else if (gameContainer.webkitRequestFullscreen) {
-        gameContainer.webkitRequestFullscreen();
-    } else if (gameContainer.msRequestFullscreen) {
-        gameContainer.msRequestFullscreen();
-    }
-}
-
-// Optional: adjust container to window size
-function resizeGameContainer() {
-    const w = window.innerWidth;
-    const h = window.innerHeight - 100; // leave space for padding/buttons
-    gameContainer.style.width = Math.min(900, w) + "px";
-    gameContainer.style.height = Math.max(400, h) + "px";
-}
-window.addEventListener("resize", resizeGameContainer);
-resizeGameContainer();
-</script>
+        // Keep container responsive
+        function resizeGame() {
+            const w = window.innerWidth;
+            if (w < 900) {
+                gameContainer.style.height = (w * 0.66) + "px"; // Maintain aspect ratio on mobile
+            }
+        }
+        window.addEventListener("resize", resizeGame);
+        resizeGame();
+    </script>
 
 </body>
 </html>
