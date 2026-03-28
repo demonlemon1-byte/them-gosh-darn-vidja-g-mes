@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sweettarts 3D Game</title>
+
+    <style>
+        /* Your original styling */
+        body { margin: 0; font-family: Arial, sans-serif; background-color: #5f9ea0; color: white; text-align: center; padding: 40px 20px; }
+        .game-wrapper { margin: 30px auto; max-width: 900px; }
+        .game-container { 
+            position: relative; width: 100%; height: 600px; 
+            background: rgba(0,0,0,0.5); border-radius: 20px; 
+            box-shadow: 0 0 25px rgba(95,158,160,0.8); overflow: hidden; 
+        }
+        #player-container { width: 100%; height: 100%; outline: none; position: relative; }
+        embed { width: 100%; height: 100%; }
+        .fullscreen-btn { margin-top: 15px; padding: 10px 20px; background: #222; border: none; border-radius: 8px; color: white; cursor: pointer; }
+        #keyboard-overlay {
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.6); display: flex; flex-direction: column;
+            align-items: center; justify-content: center; z-index: 100;
+        }
+    </style>
+
+    <script src="../../sw3da/dirplayer-polyfill-0.4.1.js"></script>
+</head>
+<body>
+
+    <h1>Sweetarts 3D Game</h1>
+
+    <div class="game-wrapper">
+        <div class="game-container" id="gameContainer">
+            <div id="player-container" tabindex="0">
+                <embed id="dirplayer-embed" 
+                       src="SweeTarts3DGame.dcr" 
+                       type="application/x-director" 
+                       width="100%" height="100%">
+                
+                <div id="keyboard-overlay">
+                    Press SPACE to Start
+                </div>
+            </div>
+        </div>
+        <button class="fullscreen-btn" onclick="goFullscreen()">⛶ Fullscreen</button>
+    </div>
+
+    <script>
+        window.addEventListener("load", () => {
+            const overlay = document.getElementById("keyboard-overlay");
+            const gameEmbed = document.getElementById("dirplayer-embed");
+
+            function startGame() {
+                overlay.style.display = "none"; 
+                // We focus the container that the polyfill will inject into
+                document.getElementById("player-container").focus();
+            }
+
+            document.addEventListener("keydown", (e) => {
+                if (e.code === "Space") startGame();
+            });
+        });
+
+        function goFullscreen() {
+            const elem = document.getElementById("gameContainer");
+            if (elem.requestFullscreen) elem.requestFullscreen();
+        }
+    </script>
+</body>
+</html>
