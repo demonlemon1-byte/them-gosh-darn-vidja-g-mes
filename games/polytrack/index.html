@@ -10,13 +10,15 @@
 <style>
 body {
     margin: 0;
-    font-family: Arial, sans-serif;
+    padding: 0;
     background-color: #5f9ea0;
     color: white;
     text-align: center;
-    padding: 40px 20px;
+    /* Change 'hidden' to 'auto' to allow scrolling if the content is too tall */
+    overflow-y: auto; 
+    /* This prevents the 'bounce' effect on Chromebooks/Mobile */
+    overscroll-behavior-y: contain; 
 }
-
 a {
     color: white;
     text-decoration: none;
